@@ -371,7 +371,6 @@ class Webuntis extends utils.Adapter {
         timetable = timetable.sort((a, b) => a.startTime - b.startTime);
         this.log.debug(JSON.stringify(timetable));
         for (const element of timetable) {
-            this.log.debug(JSON.stringify(element));
             this.log.debug('Element found: ' + index.toString());
             this.log.debug(JSON.stringify(element));
             //create an Object for each elemnt on the day
