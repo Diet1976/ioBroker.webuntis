@@ -486,6 +486,55 @@ class Webuntis extends utils.Adapter {
             else {
                 await this.setStateAsync(dayindex + '.' + index.toString() + '.code', 'regular', true);
             }
+            // --- HIER BEGINNT DIE ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
+            const infoPath = `${lessonPath}.info`;
+            let infoText = ''; // Standardmäßig leerer String
+
+            if (element.info) {
+                // Das 'info'-Feld existiert im empfangenen Element
+                if (typeof element.info === 'string') {
+                    // Wenn 'info' direkt ein String ist
+                    infoText = element.info;
+                } else if (typeof element.info === 'object' && element.info.text) {
+                    // Wenn 'info' ein Objekt mit einem 'text'-Feld ist
+                    infoText = element.info.text;
+                }
+                // Falls element.info eine andere Struktur hat (z.B. ein Array von Objekten wie 'notices'),
+                // müsste dieser Teil hier entsprechend erweitert werden.
+                // Ein Blick in das Debug-Log mit JSON.stringify(element) gibt hier Klarheit.
+
+                // Erstelle den Datenpunkt nur, wenn eine gültige Information gefunden wurde,
+                // oder wenn der Datenpunkt bereits existieren soll, um ihn zu leeren.
+                await this.setObjectNotExistsAsync(infoPath, {
+                    type: 'state',
+                    common: {
+                        name: 'Zusätzliche Info',
+                        role: 'text',
+                        type: 'string',
+                        write: false,
+                        read: true,
+                    },
+                    native: {},
+                }).catch((error) => {
+                    this.log.error(`Fehler beim Erstellen des Objekts für Info ${infoPath}: ${error}`);
+                });
+
+                await this.setStateAsync(infoPath, infoText, true);
+            } else {
+                // Wenn das 'info'-Feld nicht im Element vorhanden ist
+                // Hier kannst du entscheiden, ob du den Datenpunkt löschen oder einfach leer lassen möchtest.
+                // Option 1: Datenpunkt auf leeren String setzen (behält den Datenpunkt, leert den Wert)
+                const existingInfoState = await this.getStateAsync(infoPath);
+                if (existingInfoState) { // Nur aktualisieren, wenn der Datenpunkt existiert
+                    await this.setStateAsync(infoPath, '', true);
+                }
+                // Option 2: Datenpunkt löschen (entfernt den Datenpunkt komplett)
+                // if (await this.getObjectAsync(infoPath)) {
+                //     await this.delObjectAsync(infoPath);
+                //     this.log.debug(`Deleted obsolete info object: ${infoPath}`);
+                // }
+            }
+            // --- ENDE DER ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
             //Next Elemet
             index = index + 1;
         }
