@@ -479,35 +479,29 @@ class Webuntis extends utils.Adapter {
             }).catch((error) => {
                 this.log.error(error);
             });
-                // --- HIER BEGINNT DIE ERGÄNZUNG FÜR DAS 'NOTICE'-FELD ---
-    await this.setObjectNotExistsAsync(dayindex + '.' + index.toString() + '.notice', {
+// --- HIER BEGINNT DIE ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
+    await this.setObjectNotExistsAsync(dayindex + '.' + index.toString() + '.info', {
         type: 'state',
         common: {
-            name: 'Notiz zur Stunde', // Ein lesbarer Name für das Objekt im ioBroker Admin
+            name: 'Zusätzliche Info', // Ein passender Name für das Objekt im ioBroker Admin
             role: 'text', // Rolle für Textinhalte
-            type: 'string', // Erwarte einen String für die Notiz
+            type: 'string', // Erwarte einen String für die Information
             write: false, // Nicht direkt über ioBroker schreibbar
             read: true, // Wert kann gelesen werden
         },
         native: {},
     }).catch((error) => {
-        this.log.error(`Fehler beim Erstellen des Objekts für Notiz ${dayindex}.${index}: ${error}`);
+        this.log.error(`Fehler beim Erstellen des Objekts für Info ${dayindex}.${index}: ${error}`);
     });
 
-    if (element.notices && element.notices.length > 0) { // Prüfen, ob 'notices' existiert und Elemente enthält
-        // WebUntis API liefert 'notices' oft als Array von Objekten { id: ..., text: ... }
-        // Wir nehmen an, dass der Text im 'text'-Feld jedes Notice-Objekts ist.
-        const allNotices = element.notices.map((notice) => notice.text).join('\n'); // Alle Notizen mit Zeilenumbruch verbinden
-        await this.setStateAsync(dayindex + '.' + index.toString() + '.notice', allNotices, true);
-    } else if (element.info) { // Fallback, falls 'info' anstelle von 'notices' verwendet wird
-        await this.setStateAsync(dayindex + '.' + index.toString() + '.notice', element.info.text || '', true);
-    } else if (element.msg) { // Weiterer Fallback, falls 'msg' verwendet wird
-        await this.setStateAsync(dayindex + '.' + index.toString() + '.notice', element.msg.text || '', true);
+    if (element.info && typeof element.info === 'string') { // Prüfen, ob 'info' existiert und ein String ist
+        await this.setStateAsync(dayindex + '.' + index.toString() + '.info', element.info, true);
+    } else if (element.info && typeof element.info === 'object' && element.info.text) { // Falls 'info' ein Objekt mit einem 'text'-Feld ist
+        await this.setStateAsync(dayindex + '.' + index.toString() + '.info', element.info.text, true);
+    } else {
+        await this.setStateAsync(dayindex + '.' + index.toString() + '.info', '', true); // Setze auf leeren String, wenn keine Info vorhanden oder unerwartetes Format
     }
-    else {
-        await this.setStateAsync(dayindex + '.' + index.toString() + '.notice', '', true); // Setze auf leeren String, wenn keine Notiz vorhanden ist
-    }
-    // --- HIER ENDET DIE ERGÄNZUNG FÜR DAS 'NOTICE'-FELD ---
+    // --- HIER ENDET DIE ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
             if (element.code == 'cancelled' || element.code == 'irregular') {
                 this.log.debug('Exception in lesson found');
                 exceptions = true;
