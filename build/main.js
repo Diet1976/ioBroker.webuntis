@@ -525,15 +525,15 @@ class Webuntis extends utils.Adapter {
                 // Wenn das 'info'-Feld nicht im Element vorhanden ist
                 // Hier kannst du entscheiden, ob du den Datenpunkt löschen oder einfach leer lassen möchtest.
                 // Option 1: Datenpunkt auf leeren String setzen (behält den Datenpunkt, leert den Wert)
-                const existingInfoState = await this.getStateAsync(infoPath);
-                if (existingInfoState) { // Nur aktualisieren, wenn der Datenpunkt existiert
-                    await this.setStateAsync(infoPath, '', true);
-                }
+                // const existingInfoState = await this.getStateAsync(infoPath);
+                // if (existingInfoState) { // Nur aktualisieren, wenn der Datenpunkt existiert
+                //    await this.setStateAsync(infoPath, '', true);
+                //}
                 // Option 2: Datenpunkt löschen (entfernt den Datenpunkt komplett)
-                // if (await this.getObjectAsync(infoPath)) {
-                //     await this.delObjectAsync(infoPath);
-                //     this.log.debug(`Deleted obsolete info object: ${infoPath}`);
-                // }
+                 if (await this.getObjectAsync(infoPath)) {
+                     await this.delObjectAsync(infoPath);
+                     this.log.debug(`Deleted obsolete info object: ${infoPath}`);
+                 }
             }
             // --- ENDE DER ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
             //Next Elemet
