@@ -479,14 +479,6 @@ class Webuntis extends utils.Adapter {
             }).catch((error) => {
                 this.log.error(error);
             });
-            if (element.code == 'cancelled' || element.code == 'irregular') {
-                this.log.debug('Exception in lesson found');
-                exceptions = true;
-                await this.setStateAsync(dayindex + '.' + index.toString() + '.code', element.code, true);
-            }
-            else {
-                await this.setStateAsync(dayindex + '.' + index.toString() + '.code', 'regular', true);
-            }
             // --- HIER BEGINNT DIE ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
             const infoPath = `${lessonPath}.info`;
             let infoText = ''; // Standardmäßig leerer String
@@ -536,6 +528,15 @@ class Webuntis extends utils.Adapter {
                  }
             }
             // --- ENDE DER ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
+            if (element.code == 'cancelled' || element.code == 'irregular') {
+                this.log.debug('Exception in lesson found');
+                exceptions = true;
+                await this.setStateAsync(dayindex + '.' + index.toString() + '.code', element.code, true);
+            }
+            else {
+                await this.setStateAsync(dayindex + '.' + index.toString() + '.code', 'regular', true);
+            }
+            
             //Next Elemet
             index = index + 1;
         }
