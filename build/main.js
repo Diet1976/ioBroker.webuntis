@@ -30,7 +30,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const utils = __importStar(require("@iobroker/adapter-core"));
 const webuntis_1 = __importDefault(require("webuntis"));
 // Load your modules here, e.g.:
-// import * as fs from "fs";
+// import * as fs = require("fs");
 class Webuntis extends utils.Adapter {
     constructor(options = {}) {
         super({
@@ -371,7 +371,7 @@ class Webuntis extends utils.Adapter {
         timetable = timetable.sort((a, b) => a.startTime - b.startTime);
         this.log.debug(JSON.stringify(timetable));
         for (const element of timetable) {
-            const lessonPath = `${dayindex}.${index.toString()}`; // <--- DIESE ZEILE MUSS HIER HER!
+            const lessonPath = `${dayindex}.${index.toString()}`;
             this.log.debug('Element found: ' + index.toString());
             this.log.debug(JSON.stringify(element));
             //create an Object for each elemnt on the day
@@ -479,55 +479,40 @@ class Webuntis extends utils.Adapter {
             }).catch((error) => {
                 this.log.error(error);
             });
-            // --- HIER BEGINNT DIE ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
+            // --- BEGINN DER ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
             const infoPath = `${lessonPath}.info`;
             let infoText = ''; // Standardmäßig leerer String
 
             if (element.info) {
-                // Das 'info'-Feld existiert im empfangenen Element
                 if (typeof element.info === 'string') {
-                    // Wenn 'info' direkt ein String ist
                     infoText = element.info;
                 } else if (typeof element.info === 'object' && element.info.text) {
-                    // Wenn 'info' ein Objekt mit einem 'text'-Feld ist
                     infoText = element.info.text;
                 }
-                // Falls element.info eine andere Struktur hat (z.B. ein Array von Objekten wie 'notices'),
-                // müsste dieser Teil hier entsprechend erweitert werden.
-                // Ein Blick in das Debug-Log mit JSON.stringify(element) gibt hier Klarheit.
-
-                // Erstelle den Datenpunkt nur, wenn eine gültige Information gefunden wurde,
-                // oder wenn der Datenpunkt bereits existieren soll, um ihn zu leeren.
-                await this.setObjectNotExistsAsync(infoPath, {
-                    type: 'state',
-                    common: {
-                        name: 'Zusätzliche Info',
-                        role: 'text',
-                        type: 'string',
-                        write: false,
-                        read: true,
-                    },
-                    native: {},
-                }).catch((error) => {
-                    this.log.error(`Fehler beim Erstellen des Objekts für Info ${infoPath}: ${error}`);
-                });
-
-                await this.setStateAsync(infoPath, infoText, true);
-            } else {
-                // Wenn das 'info'-Feld nicht im Element vorhanden ist
-                // Hier kannst du entscheiden, ob du den Datenpunkt löschen oder einfach leer lassen möchtest.
-                // Option 1: Datenpunkt auf leeren String setzen (behält den Datenpunkt, leert den Wert)
-                // const existingInfoState = await this.getStateAsync(infoPath);
-                // if (existingInfoState) { // Nur aktualisieren, wenn der Datenpunkt existiert
-                //    await this.setStateAsync(infoPath, '', true);
-                //}
-                // Option 2: Datenpunkt löschen (entfernt den Datenpunkt komplett)
-                 if (await this.getObjectAsync(infoPath)) {
-                     await this.delObjectAsync(infoPath);
-                     this.log.debug(`Deleted obsolete info object: ${infoPath}`);
-                 }
+                // Füge hier weitere Logik hinzu, falls element.info komplexere Strukturen haben kann
+                // und du diese ebenfalls verarbeiten möchtest (z.B. element.info.notices[0].text)
+                // Ein Blick in das Debug-Log mit JSON.stringify(element) gibt hier Klarheit über die Datenstruktur.
             }
+
+            // Erstelle den Datenpunkt immer, unabhängig davon, ob infoText befüllt ist
+            await this.setObjectNotExistsAsync(infoPath, {
+                type: 'state',
+                common: {
+                    name: 'Zusätzliche Info',
+                    role: 'text',
+                    type: 'string',
+                    write: false,
+                    read: true,
+                },
+                native: {},
+            }).catch((error) => {
+                this.log.error(`Fehler beim Erstellen des Objekts für Info ${infoPath}: ${error}`);
+            });
+
+            // Setze den Wert des Datenpunkts
+            await this.setStateAsync(infoPath, infoText, true);
             // --- ENDE DER ERGÄNZUNG FÜR DAS 'INFO'-FELD ---
+
             if (element.code == 'cancelled' || element.code == 'irregular') {
                 this.log.debug('Exception in lesson found');
                 exceptions = true;
@@ -536,7 +521,6 @@ class Webuntis extends utils.Adapter {
             else {
                 await this.setStateAsync(dayindex + '.' + index.toString() + '.code', 'regular', true);
             }
-            
             //Next Elemet
             index = index + 1;
         }
